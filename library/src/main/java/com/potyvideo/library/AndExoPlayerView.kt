@@ -27,13 +27,14 @@ class AndExoPlayerView(
 
     private lateinit var currSource: String
 
-    private var player: SimpleExoPlayer = SimpleExoPlayer.Builder(context).build()
+    private var _player: SimpleExoPlayer = SimpleExoPlayer.Builder(context).build()
     private var andExoPlayerListener: AndExoPlayerListener? = null
     private var currPlayWhenReady: Boolean = false
     private var playbackPosition: Long = 0
     private var currentWindow: Int = 0
     private var currVolume: Float = 0f
     private var showControllers: Boolean = true
+    val player get() = _player
 
     override var customClickListener: DoubleClick
         get() = DoubleClick(object : DoubleClickListener {
@@ -66,7 +67,7 @@ class AndExoPlayerView(
         set(value) {}
 
     init {
-        player.addListener(this)
+        _player.addListener(this)
         extractAttrs(attributeSet)
     }
 
@@ -149,16 +150,16 @@ class AndExoPlayerView(
     }
 
     fun releasePlayer() {
-        currPlayWhenReady = player.playWhenReady
-        playbackPosition = player.currentPosition
-        currentWindow = player.currentWindowIndex
-        player.stop()
-        player.release()
+        currPlayWhenReady = _player.playWhenReady
+        playbackPosition = _player.currentPosition
+        currentWindow = _player.currentWindowIndex
+        _player.stop()
+        _player.release()
     }
 
     private fun restartPlayer() {
-        player.seekTo(0);
-        player.prepare()
+        _player.seekTo(0);
+        _player.prepare()
     }
 
     private fun buildMediaItem(source: String): MediaItem {
@@ -210,22 +211,22 @@ class AndExoPlayerView(
 
         val mediaItem = buildMediaItem(source)
 
-        playerView.player = player
-        player.playWhenReady = true
-        player.setMediaItem(mediaItem)
-        player.prepare()
+        playerView.player = _player
+        _player.playWhenReady = true
+        _player.setMediaItem(mediaItem)
+        _player.prepare()
     }
 
     fun seekBackward(backwardValue: Int = 10000) {
-        var seekValue = player.currentPosition - backwardValue
+        var seekValue = _player.currentPosition - backwardValue
         if (seekValue < 0) seekValue = 0
-        player.seekTo(seekValue)
+        _player.seekTo(seekValue)
     }
 
     fun seekForward(ForwardValue: Int = 10000) {
-        var seekValue = player.currentPosition + ForwardValue
-        if (seekValue > player.duration) seekValue = player.duration
-        player.seekTo(seekValue)
+        var seekValue = _player.currentPosition + ForwardValue
+        if (seekValue > _player.duration) seekValue = _player.duration
+        _player.seekTo(seekValue)
     }
 
     fun setShowControllers(showControllers: Boolean = true) {
@@ -256,13 +257,13 @@ class AndExoPlayerView(
     }
 
     fun mutePlayer() {
-        currVolume = player.volume
-        player.volume = 0f
+        currVolume = _player.volume
+        _player.volume = 0f
         showMuteButton()
     }
 
     fun unMutePlayer() {
-        player.volume = currVolume
+        _player.volume = currVolume
         showUnMuteButton()
     }
 
@@ -270,16 +271,16 @@ class AndExoPlayerView(
         this.currRepeatMode = repeatMode
         when (repeatMode) {
             EnumRepeatMode.REPEAT_OFF -> {
-                player.repeatMode = Player.REPEAT_MODE_OFF
+                _player.repeatMode = Player.REPEAT_MODE_OFF
             }
             EnumRepeatMode.REPEAT_ONE -> {
-                player.repeatMode = Player.REPEAT_MODE_ONE
+                _player.repeatMode = Player.REPEAT_MODE_ONE
             }
             EnumRepeatMode.REPEAT_ALWAYS -> {
-                player.repeatMode = Player.REPEAT_MODE_ALL
+                _player.repeatMode = Player.REPEAT_MODE_ALL
             }
             else -> {
-                player.repeatMode = Player.REPEAT_MODE_OFF
+                _player.repeatMode = Player.REPEAT_MODE_OFF
             }
         }
     }
@@ -316,22 +317,24 @@ class AndExoPlayerView(
 
     fun setPlayWhenReady(playWhenReady: Boolean = false) {
         this.currPlayWhenReady = playWhenReady
-        player.playWhenReady = playWhenReady
+        _player.playWhenReady = playWhenReady
     }
 
     fun pausePlayer() {
-        player.playWhenReady = false
-        player.playbackState
+        _player.playWhenReady = false
+        _player.playbackState
     }
 
     fun stopPlayer() {
-        player.stop()
-        player.playbackState
+        _player.stop()
+        _player.playbackState
     }
 
     fun startPlayer() {
-        player.playWhenReady = true
-        player.playbackState
+        _player.playWhenReady = true
+        _player.playbackState
     }
+
+
 
 }
