@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Projects/Android/Samples/MagicalExoPlayer/library/src/main/res/layout/layout_player_base.xml" value="0.2898550724637681" />
+        <entry key="..\:/Projects/Android/Samples/MagicalExoPlayer/library/src/main/res/layout/layout_player_base_kotlin.xml" value="0.28351449275362317" />
+        <entry key="..\:/Projects/Android/Samples/MagicalExoPlayer/library/src/main/res/layout/layout_player_loading.xml" value="0.28351449275362317" />
+        <entry key="..\:/Projects/Android/Samples/MagicalExoPlayer/library/src/main/res/layout/layout_player_loading_kotlin.xml" value="0.28351449275362317" />
+        <entry key="..\:/Projects/Android/Samples/MagicalExoPlayer/library/src/main/res/layout/layout_player_retry.xml" value="0.28351449275362317" />
+        <entry key="..\:/Projects/Android/Samples/MagicalExoPlayer/library/src/main/res/layout/video_player_exo_controllers_kotlin.xml" value="0.28351449275362317" />
+      </map>
+    </option>
+  </component>
   <component name="MarkdownProjectSettings">
     <PreviewSettings splitEditorLayout="SPLIT" splitEditorPreview="PREVIEW" useGrayscaleRendering="false" zoomFactor="1.0" maxImageWidth="0" synchronizePreviewPosition="true" highlightPreviewType="LINE" highlightFadeOut="5" highlightOnTyping="true" synchronizeSourcePosition="true" verticallyAlignSourceAndPreviewSyncPosition="true" showSearchHighlightsInPreview="true" showSelectionInPreview="true" lastLayoutSetsDefault="false">
       <PanelProvider>

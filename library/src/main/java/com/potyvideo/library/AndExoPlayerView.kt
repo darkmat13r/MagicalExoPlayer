@@ -104,6 +104,10 @@ class AndExoPlayerView(
         }
     }
 
+    override fun onSwipeSeek(distance: Long) {
+        seekForward(distance.toInt())
+    }
+
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
     }
 
