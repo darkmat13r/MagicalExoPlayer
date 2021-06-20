@@ -16,10 +16,10 @@ import com.potyvideo.library.globalEnums.EnumMute
 import com.potyvideo.library.globalEnums.EnumRepeatMode
 import com.potyvideo.library.globalEnums.EnumResizeMode
 import com.potyvideo.library.globalInterfaces.AndExoPlayerListener
-import com.potyvideo.library.utils.DoubleClick
-import com.potyvideo.library.utils.DoubleClickListener
-import com.potyvideo.library.utils.PublicFunctions
-import com.potyvideo.library.utils.PublicValues
+import com.potyvideo.library.utils.*
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sign
 
 class AndExoPlayerView(
         context: Context,
@@ -104,8 +104,32 @@ class AndExoPlayerView(
         }
     }
 
-    override fun onSwipeSeek(distance: Long) {
-        seekForward(distance.toInt())
+    override fun doSeekTouch(coef: Int, gesturesize: Float, seek: Boolean) {
+        var coef = coef
+        if (coef == 0) coef = 1
+        // No seek action if coef > 0.5 and gesturesize < 1cm
+        if (abs(gesturesize) < 1 ) return
+
+        val length = player.duration
+        val time = player.currentPosition
+
+        // Size of the jump, 10 minutes max (600000), with a bi-cubic progression, for a 8cm gesture
+        var jump = (sign(gesturesize) * (600000 * (gesturesize / 8).toDouble().pow(4.0) + 3000) / coef).toInt()
+
+        // Adjust the jump
+        if (jump > 0 && time + jump > length) jump = (length - time).toInt()
+        if (jump < 0 && time + jump < 0) jump = (-time).toInt()
+
+        //Jump !
+        if (seek && length > 0) player.seekTo(time + jump)
+
+        //Show the jump's size
+        if (length > 0) showInfo(String.format("%s%s (%s)%s",
+            if (jump >= 0) "+" else "",
+            Tools.millisToString(jump.toLong()),
+            Tools.millisToString(time + jump),
+            if (coef > 1) String.format(" x%.1g", 1.0 / coef) else ""))
+
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {

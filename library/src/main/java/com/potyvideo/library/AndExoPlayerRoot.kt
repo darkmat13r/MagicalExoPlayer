@@ -3,6 +3,7 @@ package com.potyvideo.library
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -16,6 +17,10 @@ import com.google.android.exoplayer2.ui.PlayerView
 import com.potyvideo.library.globalEnums.*
 import com.potyvideo.library.utils.DoubleClick
 import java.lang.StringBuilder
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sign
 
 
 abstract class AndExoPlayerRoot @JvmOverloads constructor(
@@ -24,6 +29,7 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attributeSet, defStyleAttr) {
 
+    private lateinit var screenConfig: ScreenConfig
     private var inflatedView: View = inflate(context, R.layout.layout_player_base_kotlin, this)
 
     companion object{
@@ -51,7 +57,10 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
     var currPlaybackSpeed: EnumPlaybackSpeed = EnumPlaybackSpeed.NORMAL
 
     init {
-
+        val dm = context.resources.displayMetrics
+        val yRange = dm.widthPixels.coerceAtMost(dm.heightPixels)
+        val xRange = dm.widthPixels.coerceAtLeast(dm.heightPixels)
+        screenConfig = ScreenConfig(dm, xRange, yRange, resources.configuration.orientation)
         // views
         playerView = inflatedView.findViewById(R.id.playerView)
         retryView = inflatedView.findViewById(R.id.retry_view)
@@ -78,51 +87,36 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
         unMute.setOnClickListener(customClickListener)
         playerView.setOnTouchListener(object : OnTouchListener {
             var distance: Long = 0
-            var lastEventY : Float = 0f
-            var lastEventX : Float = 0f
+            var initTouchY : Float = 0f
+            var touchY : Float = 0f
+            var initTouchX : Float = 0f
+            var touchX : Float = 0f
+
             override fun onTouch(v: View?, event: MotionEvent?): Boolean {
                 if (event == null)
                     return false
+                val xChanged = if (touchX != -1f && touchY != -1f) event.x - touchX else 0f
+                val yChanged = if (touchX != -1f && touchY != -1f) event.y - touchY else 0f
+                // coef is the gradient's move to determine a neutral zone
+                val coef = abs(yChanged / xChanged)
+                val xgesturesize = xChanged / screenConfig.metrics.xdpi * 2.54f
+                val deltaY = ((abs(initTouchY - event.y) / screenConfig.metrics.xdpi + 0.5f) * 2f).coerceAtLeast(1f)
                 if (event.action  == (MotionEvent.ACTION_DOWN)) {
                     distance = 0
-                    lastEventX = event.getX(0)
-                    lastEventY = event.getY(0)
+                    initTouchY = event.y
+                    initTouchX = event.x
+                    touchY = initTouchY
+                    touchX = event.x
                     seekText.setText("0")
                     seekText.visibility = View.VISIBLE
                 }
                 if (event.action  ==(MotionEvent.ACTION_MOVE)) {
-                    val d = Math.sqrt(
-                        Math.pow(
-                            lastEventX - event.getX(0).toDouble(),
-                            2.0
-                        ) + Math.pow( lastEventY - event.getY(0).toDouble(), 2.0)
-                    )
-                    distance = d.toLong()
 
-
-                    val direction = Math.atan2( event.getY(0).toDouble() - lastEventY ,   event.getX(0).toDouble() - lastEventX)
-                    val stringBuilder = StringBuilder()
-                    if(direction >  0){
-                        distance = -distance;
-                        stringBuilder.append("-")
-                    }
-                    val durationInMillis = Math.abs(distance*100)
-                    val millis: Long = durationInMillis % 1000
-                    val second: Long = durationInMillis / 1000 % 60
-                    val minute: Long = durationInMillis / (1000 * 60) % 60
-                    val hour: Long = durationInMillis / (1000 * 60 * 60) % 24
-                    if(hour > 0){
-                        stringBuilder.append("${String.format("%02d",hour)}:")
-                    }
-                    stringBuilder.append("${String.format("%02d",minute)}:")
-                    stringBuilder.append(String.format("%02d",second))
-                    seekText.setText(stringBuilder)
+                    doSeekTouch(deltaY.roundToInt(), xgesturesize, false)
                 }
                 if(event.action  ==(MotionEvent.ACTION_UP)){
-                    onSwipeSeek(distance*100)
                     seekText.setText("0")
-                    lastEventY = 0f
-                    lastEventX = 0f
+                    doSeekTouch(deltaY.roundToInt(), xgesturesize, true)
                     seekText.visibility = View.GONE
                 }
                 return true
@@ -131,7 +125,10 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
         })
     }
 
-    abstract fun onSwipeSeek(distance : Long)
+    fun showInfo(text : String){
+        seekText.setText(text)
+    }
+    abstract fun doSeekTouch(coef: Int, gesturesize: Float, seek: Boolean)
 
     protected fun showRetryView() {
         showRetryView(null)
@@ -182,3 +179,4 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
     }
 
 }
+data class ScreenConfig(val metrics: DisplayMetrics, val xRange: Int, val yRange: Int, val orientation: Int)
