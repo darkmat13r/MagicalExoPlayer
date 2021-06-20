@@ -106,13 +106,11 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
                         distance = -distance;
                         stringBuilder.append("-")
                     }
-                    val durationInMillis = distance*100
+                    val durationInMillis = Math.abs(distance*100)
                     val millis: Long = durationInMillis % 1000
                     val second: Long = durationInMillis / 1000 % 60
                     val minute: Long = durationInMillis / (1000 * 60) % 60
                     val hour: Long = durationInMillis / (1000 * 60 * 60) % 24
-
-
                     if(hour > 0){
                         stringBuilder.append("${String.format("%02d",hour)}:")
                     }
