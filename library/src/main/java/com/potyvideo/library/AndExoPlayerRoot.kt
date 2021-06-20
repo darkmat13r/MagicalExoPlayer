@@ -107,8 +107,6 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
                     initTouchX = event.x
                     touchY = initTouchY
                     touchX = event.x
-                    seekText.setText("0")
-                    seekText.visibility = View.VISIBLE
                 }
                 if (event.action  ==(MotionEvent.ACTION_MOVE)) {
 
@@ -117,6 +115,7 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
                 if(event.action  ==(MotionEvent.ACTION_UP)){
                     seekText.setText("0")
                     doSeekTouch(deltaY.roundToInt(), xgesturesize, true)
+
                     seekText.visibility = View.GONE
                 }
                 return true
@@ -124,8 +123,11 @@ abstract class AndExoPlayerRoot @JvmOverloads constructor(
 
         })
     }
-
+     fun hideInfo() {
+         seekText.visibility = View.GONE
+    }
     fun showInfo(text : String){
+        seekText.visibility = View.VISIBLE
         seekText.setText(text)
     }
     abstract fun doSeekTouch(coef: Int, gesturesize: Float, seek: Boolean)

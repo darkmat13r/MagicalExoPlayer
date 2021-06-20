@@ -3,6 +3,7 @@ package com.potyvideo.library
 import android.content.Context
 import android.content.res.TypedArray
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -22,8 +23,9 @@ import kotlin.math.pow
 import kotlin.math.sign
 
 class AndExoPlayerView(
-        context: Context,
-        attributeSet: AttributeSet) : AndExoPlayerRoot(context, attributeSet), Player.EventListener {
+    context: Context,
+    attributeSet: AttributeSet
+) : AndExoPlayerRoot(context, attributeSet), Player.EventListener {
 
     private lateinit var currSource: String
 
@@ -75,24 +77,39 @@ class AndExoPlayerView(
 
         attributeSet.let {
 
-            val typedArray: TypedArray = context.obtainStyledAttributes(it, R.styleable.AndExoPlayerView)
+            val typedArray: TypedArray =
+                context.obtainStyledAttributes(it, R.styleable.AndExoPlayerView)
 
             if (typedArray.hasValue(R.styleable.AndExoPlayerView_andexo_aspect_ratio)) {
-                val aspectRatio = typedArray.getInteger(R.styleable.AndExoPlayerView_andexo_aspect_ratio, EnumAspectRatio.ASPECT_16_9.value)
+                val aspectRatio = typedArray.getInteger(
+                    R.styleable.AndExoPlayerView_andexo_aspect_ratio,
+                    EnumAspectRatio.ASPECT_16_9.value
+                )
                 setAspectRatio(EnumAspectRatio[aspectRatio])
             }
 
             if (typedArray.hasValue(R.styleable.AndExoPlayerView_andexo_resize_mode)) {
-                val resizeMode: Int = typedArray.getInteger(R.styleable.AndExoPlayerView_andexo_resize_mode, EnumResizeMode.FILL.value)
+                val resizeMode: Int = typedArray.getInteger(
+                    R.styleable.AndExoPlayerView_andexo_resize_mode,
+                    EnumResizeMode.FILL.value
+                )
                 setResizeMode(EnumResizeMode[resizeMode])
             }
 
             if (typedArray.hasValue(R.styleable.AndExoPlayerView_andexo_play_when_ready)) {
-                setPlayWhenReady(typedArray.getBoolean(R.styleable.AndExoPlayerView_andexo_play_when_ready, false))
+                setPlayWhenReady(
+                    typedArray.getBoolean(
+                        R.styleable.AndExoPlayerView_andexo_play_when_ready,
+                        false
+                    )
+                )
             }
 
             if (typedArray.hasValue(R.styleable.AndExoPlayerView_andexo_mute)) {
-                val muteValue = typedArray.getInteger(R.styleable.AndExoPlayerView_andexo_mute, EnumMute.UNMUTE.value)
+                val muteValue = typedArray.getInteger(
+                    R.styleable.AndExoPlayerView_andexo_mute,
+                    EnumMute.UNMUTE.value
+                )
                 setMute(EnumMute[muteValue])
             }
 
@@ -108,13 +125,26 @@ class AndExoPlayerView(
         var coef = coef
         if (coef == 0) coef = 1
         // No seek action if coef > 0.5 and gesturesize < 1cm
-        if (abs(gesturesize) < 1 ) return
+        if (abs(gesturesize) < 1) {
+            Log.e("doSeekTouch", "Toggle POlayer Cotnrolelr")
+            if(seek){
+                if (playerView.isControllerVisible)
+                    playerView.hideController()
+                else
+                    playerView.showController()
+            }else{
+                playerView.showController()
+            }
+            hideInfo()
+            return
+        }
 
         val length = player.duration
         val time = player.currentPosition
 
         // Size of the jump, 10 minutes max (600000), with a bi-cubic progression, for a 8cm gesture
-        var jump = (sign(gesturesize) * (600000 * (gesturesize / 8).toDouble().pow(4.0) + 3000) / coef).toInt()
+        var jump = (sign(gesturesize) * (600000 * (gesturesize / 8).toDouble()
+            .pow(4.0) + 3000) / coef).toInt()
 
         // Adjust the jump
         if (jump > 0 && time + jump > length) jump = (length - time).toInt()
@@ -124,18 +154,28 @@ class AndExoPlayerView(
         if (seek && length > 0) player.seekTo(time + jump)
 
         //Show the jump's size
-        if (length > 0) showInfo(String.format("%s%s (%s)%s",
-            if (jump >= 0) "+" else "",
-            Tools.millisToString(jump.toLong()),
-            Tools.millisToString(time + jump),
-            if (coef > 1) String.format(" x%.1g", 1.0 / coef) else ""))
+        if (length > 0) showInfo(
+            String.format(
+                "%s%s (%s)%s",
+                if (jump >= 0) "+" else "",
+                Tools.millisToString(jump.toLong()),
+                Tools.millisToString(time + jump),
+                if (coef > 1) String.format(" x%.1g", 1.0 / coef) else ""
+            )
+        ) else {
+            hideInfo()
+        }
 
     }
+
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
     }
 
-    override fun onTracksChanged(trackGroups: TrackGroupArray, trackSelections: TrackSelectionArray) {
+    override fun onTracksChanged(
+        trackGroups: TrackGroupArray,
+        trackSelections: TrackSelectionArray
+    ) {
     }
 
     override fun onPlayerError(error: ExoPlaybackException) {
@@ -204,29 +244,29 @@ class AndExoPlayerView(
 
     private fun buildMediaItemMP4(source: String): MediaItem {
         return MediaItem.Builder()
-                .setUri(source)
-                .setMimeType(MimeTypes.APPLICATION_MP4)
-                .build()
+            .setUri(source)
+            .setMimeType(MimeTypes.APPLICATION_MP4)
+            .build()
     }
 
     private fun buildMediaHLS(source: String): MediaItem {
         return MediaItem.Builder()
-                .setUri(source)
-                .setMimeType(MimeTypes.APPLICATION_M3U8)
-                .build()
+            .setUri(source)
+            .setMimeType(MimeTypes.APPLICATION_M3U8)
+            .build()
     }
 
     private fun buildMediaDash(source: String): MediaItem {
         return MediaItem.Builder()
-                .setUri(source)
-                .setMimeType(MimeTypes.APPLICATION_MPD)
-                .build()
+            .setUri(source)
+            .setMimeType(MimeTypes.APPLICATION_MPD)
+            .build()
     }
 
     private fun buildMediaGlobal(source: String): MediaItem {
         return MediaItem.Builder()
-                .setUri(source)
-                .build()
+            .setUri(source)
+            .build()
     }
 
     fun setAndExoPlayerListener(andExoPlayerListener: AndExoPlayerListener) {
@@ -317,19 +357,28 @@ class AndExoPlayerView(
         this.currAspectRatio = aspectRatio
         val value = PublicFunctions.getScreenWidth()
         when (aspectRatio) {
-            EnumAspectRatio.ASPECT_1_1 -> playerView.layoutParams = FrameLayout.LayoutParams(value, value)
-            EnumAspectRatio.ASPECT_4_3 -> playerView.layoutParams = FrameLayout.LayoutParams(value, 3 * value / 4)
-            EnumAspectRatio.ASPECT_16_9 -> playerView.layoutParams = FrameLayout.LayoutParams(value, 9 * value / 16)
-            EnumAspectRatio.ASPECT_MATCH -> playerView.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            EnumAspectRatio.ASPECT_1_1 -> playerView.layoutParams =
+                FrameLayout.LayoutParams(value, value)
+            EnumAspectRatio.ASPECT_4_3 -> playerView.layoutParams =
+                FrameLayout.LayoutParams(value, 3 * value / 4)
+            EnumAspectRatio.ASPECT_16_9 -> playerView.layoutParams =
+                FrameLayout.LayoutParams(value, 9 * value / 16)
+            EnumAspectRatio.ASPECT_MATCH -> playerView.layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
             EnumAspectRatio.ASPECT_MP3 -> {
                 playerView.controllerShowTimeoutMs = 0
                 playerView.controllerHideOnTouch = false
-                val mp3Height = context.resources.getDimensionPixelSize(R.dimen.player_controller_base_height)
-                playerView.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mp3Height)
+                val mp3Height =
+                    context.resources.getDimensionPixelSize(R.dimen.player_controller_base_height)
+                playerView.layoutParams =
+                    FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, mp3Height)
             }
             EnumAspectRatio.UNDEFINE -> {
                 val baseHeight = resources.getDimension(R.dimen.player_base_height).toInt()
-                playerView.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, baseHeight)
+                playerView.layoutParams =
+                    FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, baseHeight)
             }
         }
     }
@@ -362,7 +411,6 @@ class AndExoPlayerView(
         _player.playWhenReady = true
         _player.playbackState
     }
-
 
 
 }
